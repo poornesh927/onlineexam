@@ -30,22 +30,31 @@ app.use(helmet({ crossOriginEmbedderPolicy: false }));
 //   allowedHeaders: ['Content-Type', 'Authorization']
 // }));
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  process.env.CLIENT_URL
-];
+// const allowedOrigins = [
+//   'http://localhost:5173',
+//   process.env.CLIENT_URL
+// ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // No origin = same-origin or curl/Postman — allow it
     if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      'http://localhost:5173',
+      process.env.CLIENT_URL,        // read fresh each call
+    ].filter(Boolean);               // removes undefined if CLIENT_URL not set
 
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.log('CORS blocked origin:', origin);   // helps debugging
+      callback(new Error(`CORS blocked: ${origin}`));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 
